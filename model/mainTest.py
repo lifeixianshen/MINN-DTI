@@ -22,14 +22,20 @@ os.environ['CUDA_VISIBLE_DEVICES']=cudanb
 print('current pid', os.getpid())
 print('host:',socket.gethostname())
 print('cuda:',os.environ['CUDA_VISIBLE_DEVICES'])
-print('trainFoldPath:%s'%trainFoldPath)
-print('testFoldPath:%s'%testFoldPath)
+print(f'trainFoldPath:{trainFoldPath}')
+print(f'testFoldPath:{testFoldPath}')
 def log_pam(ags,model = 0 ):
     longlist= ['test_proteins','testDataDict','seqContactDict','model','train_loader']
     if model == 0:
-        print(['%s:%s'%(k,v) for k,v in ags.items() if k not in longlist])
+        print([f'{k}:{v}' for k,v in ags.items() if k not in longlist])
     else:
-        print(['%s:%s'%(k,vars(ags)[k]) for k in  list(vars(ags).keys()) if k not in longlist])
+        print(
+            [
+                f'{k}:{vars(ags)[k]}'
+                for k in list(vars(ags).keys())
+                if k not in longlist
+            ]
+        )
 log_pam(modelArgs)
 log_pam(trainArgs)
 log_pam(mpnargs,1)

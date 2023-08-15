@@ -80,11 +80,9 @@ class DrugVQA(torch.nn.Module):
             downsample = nn.Sequential(
                 conv3x3(self.in_channels, out_channels, stride=stride),
                 nn.BatchNorm2d(out_channels))
-        layers = []
-        layers.append(self.block(self.in_channels, out_channels, stride, downsample))
+        layers = [self.block(self.in_channels, out_channels, stride, downsample)]
         self.in_channels = out_channels
-        for i in range(1, blocks):
-            layers.append(self.block(out_channels, out_channels))
+        layers.extend(self.block(out_channels, out_channels) for _ in range(1, blocks))
         return nn.Sequential(*layers)
 
     def forward(self,x):

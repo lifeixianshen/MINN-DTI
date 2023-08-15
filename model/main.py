@@ -22,11 +22,11 @@ os.environ['CUDA_VISIBLE_DEVICES']=cudanb
 print('current pid', os.getpid())
 print('host:',socket.gethostname())
 print('cuda:',os.environ['CUDA_VISIBLE_DEVICES'])
-print('trainFoldPath:%s'%trainFoldPath)
-print('testFoldPath:%s'%trainFoldPath)
+print(f'trainFoldPath:{trainFoldPath}')
+print(f'testFoldPath:{trainFoldPath}')
 def log_pam(ags):
     longlist= ['test_proteins','testDataDict','seqContactDict','model','train_loader']
-    print(['%s:%s'%(k,v) for k,v in ags.items() if k not in longlist])
+    print([f'{k}:{v}' for k,v in ags.items() if k not in longlist])
 log_pam(modelArgs)
 log_pam(trainArgs)
 def main():

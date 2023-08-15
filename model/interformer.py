@@ -25,10 +25,7 @@ class SelfAttention(nn.Module):
         else:
             self.scale = torch.sqrt(torch.FloatTensor([hid_dim // n_heads]))
     def forward(self, query, key, value, mask=None):
-        if len(query.shape)>len(key.shape):
-            bsz = query.shape[0]
-        else:
-            bsz = key.shape[0]
+        bsz = query.shape[0] if len(query.shape)>len(key.shape) else key.shape[0]
         Q = self.w_q(query)
         K = self.w_k(key)
         V = self.w_v(value)

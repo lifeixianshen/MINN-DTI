@@ -46,27 +46,27 @@ time_log('train loader....')
 train_dataset = ProDataset(dataSet = trainDataSet,seqContactDict = seqContactDict)
 train_loader = DataLoader(dataset = train_dataset,batch_size=1, collate_fn=my_collate, pin_memory=False,shuffle=True,drop_last = True)
 time_log('model args...')
-modelArgs = {}
-modelArgs['batch_size'] = 1
-modelArgs['d_a'] = 32
-modelArgs['r'] = 10
-modelArgs['dropout'] = 0.2
-modelArgs['in_channels'] = 8
-modelArgs['cnn_channels'] = 32
-modelArgs['cnn_layers'] = 4
-modelArgs['dense_hid'] = 32
-modelArgs['task_type'] = 0
-modelArgs['n_classes'] = 1
-#for interCmpnn
-modelArgs['hid_dim'] = 32
-modelArgs['node_feat_size'] = 39
-modelArgs['edge_feat_size'] = 10
-modelArgs['graph_feat_size'] = 32
-modelArgs['num_layers'] = 2
-modelArgs['num_timesteps'] = 2
-modelArgs['n_layers'] = 1
-modelArgs['n_heads'] = 8
-modelArgs['pf_dim'] = 200
+modelArgs = {
+    'batch_size': 1,
+    'd_a': 32,
+    'r': 10,
+    'dropout': 0.2,
+    'in_channels': 8,
+    'cnn_channels': 32,
+    'cnn_layers': 4,
+    'dense_hid': 32,
+    'task_type': 0,
+    'n_classes': 1,
+    'hid_dim': 32,
+    'node_feat_size': 39,
+    'edge_feat_size': 10,
+    'graph_feat_size': 32,
+    'num_layers': 2,
+    'num_timesteps': 2,
+    'n_layers': 1,
+    'n_heads': 8,
+    'pf_dim': 200,
+}
 mpnargs = parse_train_args()
 mpnargs.data_path = '../data/'
 mpnargs.dataset_type = 'classification' # regression
@@ -83,10 +83,11 @@ modify_train_args(mpnargs)
 
 #for train
 time_log('train args...')
-trainArgs = {}
-trainArgs['model'] = MPN(mpnargs,None,None,False,modelArgs).cuda()
-trainArgs['epochs'] = 300
-trainArgs['lr'] = 0.0001
+trainArgs = {
+    'model': MPN(mpnargs, None, None, False, modelArgs).cuda(),
+    'epochs': 300,
+    'lr': 0.0001,
+}
 trainArgs['train_loader'] = train_loader
 trainArgs['doTest'] = False
 trainArgs['test_proteins'] = ['all']
@@ -98,6 +99,6 @@ trainArgs['clip'] = True
 trainArgs['criterion'] = torch.nn.BCELoss()
 trainArgs['optimizer'] = torch.optim.Adam(trainArgs['model'].parameters(),lr=trainArgs['lr'])
 trainArgs['doSave'] = True
-trainArgs['saveNamePre'] = 'DUDE-fold-h%s-'%dt
+trainArgs['saveNamePre'] = f'DUDE-fold-h{dt}-'
 
 time_log('train args over...')

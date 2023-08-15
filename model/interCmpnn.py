@@ -164,7 +164,7 @@ class BatchGRU(nn.Module):
     def forward(self, node, a_scope):
         hidden = node
         message = F.relu(node + self.bias)
-        MAX_atom_len = max([a_size for a_start, a_size in a_scope])
+        MAX_atom_len = max(a_size for a_start, a_size in a_scope)
         # padding
         message_lst = []
         hidden_lst = []
@@ -174,21 +174,21 @@ class BatchGRU(nn.Module):
             cur_message = message.narrow(0, a_start, a_size)
             cur_hidden = hidden.narrow(0, a_start, a_size)
             hidden_lst.append(cur_hidden.max(0)[0].unsqueeze(0).unsqueeze(0))
-            
+
             cur_message = torch.nn.ZeroPad2d((0,0,0,MAX_atom_len-cur_message.shape[0]))(cur_message)
             message_lst.append(cur_message.unsqueeze(0))
-            
+
         message_lst = torch.cat(message_lst, 0)
         hidden_lst  = torch.cat(hidden_lst, 1)
         hidden_lst = hidden_lst.repeat(2,1,1)
         cur_message, cur_hidden = self.gru(message_lst, hidden_lst)
-        
-        # unpadding
-        cur_message_unpadding = []
-        for i, (a_start, a_size) in enumerate(a_scope):
-            cur_message_unpadding.append(cur_message[i, :a_size].view(-1, 2*self.hidden_size))
+
+        cur_message_unpadding = [
+            cur_message[i, :a_size].view(-1, 2 * self.hidden_size)
+            for i, (a_start, a_size) in enumerate(a_scope)
+        ]
         cur_message_unpadding = torch.cat(cur_message_unpadding, 0)
-        
+
         message = torch.cat([torch.cat([message.narrow(0, 0, 1), message.narrow(0, 0, 1)], 1), 
                              cur_message_unpadding], 0)
         return message
@@ -211,6 +211,4 @@ class MPN(nn.Module):
         self.task_type = targs['task_type']
     def forward(self, batch: Union[List[str], BatchMolGraph],
                 features_batch: List[np.ndarray] = None, contactmap=None) -> torch.FloatTensor:
-        output = self.encoder.forward(batch, features_batch,contactmap)
-
-        return output
+        return self.encoder.forward(batch, features_batch,contactmap)

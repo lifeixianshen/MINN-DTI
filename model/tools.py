@@ -43,14 +43,13 @@ def line2voc_arr(line,letters):
     regex = '(\[[^\[\]]{1,10}\])'
     line = replace_halogen(line)
     char_list = re.split(regex, line)
-    for li, char in enumerate(char_list):
+    for char in char_list:
         if char.startswith('['):
-               arr.append(letterToIndex(char,letters)) 
+            arr.append(letterToIndex(char,letters))
         else:
-            chars = [unit for unit in char]
+            chars = list(char)
 
-            for i, unit in enumerate(chars):
-                arr.append(letterToIndex(unit,letters))
+            arr.extend(letterToIndex(unit,letters) for unit in chars)
     return arr, len(arr)
 def letterToIndex(letter,smiles_letters):
     return smiles_letters.index(letter)
@@ -87,18 +86,18 @@ def construct_vocabulary(smiles_list,fname):
     """Returns all the characters present in a SMILES file.
        Uses regex to find characters/tokens of the format '[x]'."""
     add_chars = set()
-    for i, smiles in enumerate(smiles_list):
-        regex = '(\[[^\[\]]{1,10}\])'
+    regex = '(\[[^\[\]]{1,10}\])'
+    for smiles in smiles_list:
         smiles = ds.replace_halogen(smiles)
         char_list = re.split(regex, smiles)
         for char in char_list:
             if char.startswith('['):
                 add_chars.add(char)
             else:
-                chars = [unit for unit in char]
+                chars = list(char)
                 [add_chars.add(unit) for unit in chars]
 
-    print("Number of characters: {}".format(len(add_chars)))
+    print(f"Number of characters: {len(add_chars)}")
     with open(fname, 'w') as f:
         f.write('<pad>' + "\n")
         for char in add_chars:
@@ -109,18 +108,15 @@ def readLinesStrip(lines):
         lines[i] = lines[i].rstrip('\n')
     return lines
 def getProteinSeq(path,contactMapName):
-    proteins = open(path+"/"+contactMapName).readlines()
+    proteins = open(f"{path}/{contactMapName}").readlines()
     proteins = readLinesStrip(proteins)
-    seq = proteins[1]
-    return seq
+    return proteins[1]
 def getProtein(path,contactMapName,contactMap = True):
-    proteins = open(path+"/"+contactMapName).readlines()
+    proteins = open(f"{path}/{contactMapName}").readlines()
     proteins = readLinesStrip(proteins)
     seq = proteins[1]
-    if(contactMap):
-        contactMap = []
-        for i in range(2,len(proteins)):
-            contactMap.append(proteins[i])
+    if contactMap:
+        contactMap = [proteins[i] for i in range(2,len(proteins))]
         return seq,contactMap
     else:
         return seq
@@ -128,11 +124,9 @@ def getProtein(path,contactMapName,contactMap = True):
 def getTrainDataSet(trainFoldPath):
     with open(trainFoldPath, 'r') as f:
         trainCpi_list = f.read().strip().split('\n')
-    trainDataSet = [cpi.strip().split() for cpi in trainCpi_list]
-    return trainDataSet#[[smiles, sequence, interaction],.....]
+    return [cpi.strip().split() for cpi in trainCpi_list]
 def getTestProteinList(testFoldPath):
-    testProteinList = readLinesStrip(open(testFoldPath).readlines())[0].split()
-    return testProteinList#['kpcb_2i0eA_full','fabp4_2nnqA_full',....]
+    return readLinesStrip(open(testFoldPath).readlines())[0].split()
 def getSeqContactDict(contactPath,contactDictPath):# make a seq-contactMap dict 
     contactDict = open(contactDictPath).readlines()
     seqContactDict = {}
@@ -151,19 +145,16 @@ def getLetters(path):
 def getDataDict(testProteinList,activePath,decoyPath,contactPath):
     dataDict = {}
     for x in testProteinList:
-        xData = []
         protein = x.split('_')[0]
-        proteinActPath = activePath+"/"+protein+"_actives_final.ism"
-        proteinDecPath = decoyPath+"/"+protein+"_decoys_final.ism"
+        proteinActPath = f"{activePath}/{protein}_actives_final.ism"
+        proteinDecPath = f"{decoyPath}/{protein}_decoys_final.ism"
         act = open(proteinActPath,'r').readlines()
         dec = open(proteinDecPath,'r').readlines()
         actives = [[x.split(' ')[0],1] for x in act] ######
         decoys = [[x.split(' ')[0],0] for x in dec]# test
         seq = getProtein(contactPath,x,contactMap = False)
-        for i in range(len(actives)):
-            xData.append([actives[i][0],seq,actives[i][1]])
-        for i in range(len(decoys)):
-            xData.append([decoys[i][0],seq,decoys[i][1]])
+        xData = [[active[0], seq, active[1]] for active in actives]
+        xData.extend([decoy[0], seq, decoy[1]] for decoy in decoys)
         dataDict[x] = xData
     return dataDict
 
@@ -175,5 +166,5 @@ def my_collate(batch):
     return [smiles, contactMap, label,seq]
 
 def time_log(s):
-    print('%s-%s'%(time.strftime("%Y-%m-%d_%H:%M:%S", time.localtime()),s))
+    print(f'{time.strftime("%Y-%m-%d_%H:%M:%S", time.localtime())}-{s}')
     return
